@@ -14,44 +14,47 @@ app.set('view engine', 'ejs');
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', require('./Routes/indexRoutes'));
 
-io.on("connection", function (socket) {
+io.on("connection", function (soc) {
     console.log("user is connect");
-
     if (!players.White) {
-        players.White = socket.id;
-        socket.emit("playerRole", "White");
+        players.White = soc.id;
+        soc.emit("playerRole", "White");
+    console.log("You are is White");
+
     } else if (!players.Black) {
-        players.Black = socket.id;
-        socket.emit("playerRole", "Black");
+        players.Black = soc.id;
+        soc.emit("playerRole", "Black");
+    console.log("You are is Balck");
+
     } else {
-        socket.emit("SpectatorRole"); 0
+        soc.emit("SpectatorRole"); 
+    console.log("You are only view game");
+
     }
 
-    socket.on("disconnect", function () {
-        if (socket.id === players.White) {
+    soc.on("disconnect", function () {
+        if (soc.id === players.White) {
             delete players.White;
-        } else if (socket.id === players.Black) {
+        } else if (soc.id === players.Black) {
             delete players.Black;
         }
     });
 
-    socket.on("move", function (move) {
+    soc.on("move", function (move) {
         try {
-            if (chess.turn() === "w" && socket.id !== players.White) return;
-            if (chess.turn() === "b" && socket.id !== players.Black) return;
-
+            if (chess.turn() === "w" && soc.id !== players.White) return;
+            if (chess.turn() === "b" && soc.id !== players.Black) return;
             const result = chess.move(move);
-
             if (result) {
                 io.emit("move", move);
                 io.emit("boardState", chess.fen());
             } else {
                 console.log("Invalid Move:", move);
-                socket.emit("invalidMove", move);
+                soc.emit("invalidMove", move);
             }
         } catch (err) {
             console.log(err);
-            socket.emit("wrongMove", move);
+            soc.emit("wrongMove", move);
         }
     });
 });
