@@ -9,9 +9,10 @@ const sever = http.createServer(app);
 const io = socket(sever);
 const chess = new Chess();
 const players = {};
-
+const morgan = require('morgan');
 app.set('view engine', 'ejs');
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(morgan('dev'));
 app.use('/', require('./Routes/indexRoutes'));
 
 io.on("connection", function (soc) {
